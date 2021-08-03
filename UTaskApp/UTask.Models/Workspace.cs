@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace UTask.Models
 {
@@ -9,5 +10,7 @@ namespace UTask.Models
         public string Name { get; set; }
 
         public string Visibility { get; set; }
+
+        public ICollection<Task> Tasks { get; set; }
     }
 }
