@@ -11,5 +11,7 @@ namespace UTask.Models
         public string Password { get; set; }
 
         public string Email { get; set; }
+
+        public Settings Settings { get; set; }
     }
 }
