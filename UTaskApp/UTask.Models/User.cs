@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace UTask.Models
 {
@@ -13,5 +14,7 @@ namespace UTask.Models
         public string Email { get; set; }
 
         public Settings Settings { get; set; }
+
+        public ICollection<Workspace> Workspaces { get; set; }
     }
 }
