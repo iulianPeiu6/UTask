@@ -9,5 +9,7 @@ namespace UTask.Models
         public bool NotifyMe { get; set; }
 
         public bool KeepMeLoggedIn { get; set; }
+
+        public User User { get; set; }
     }
 }
