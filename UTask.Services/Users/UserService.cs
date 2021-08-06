@@ -38,7 +38,7 @@ namespace UTask.Services.Users
                 logger.LogInformation("Start adding new user in database");
                 createdUser = userRepository.Add(user);
                 unitOfWork.Commit();
-                logger.LogInformation($"User created: Id \"{ createdUser.Id }\", Username is \"{ createdUser.Username }\"");
+                logger.LogInformation($"User created: Id \"{ createdUser.Id }\", Username \"{ createdUser.Username }\"");
             }
             catch (Exception exception)
             {
@@ -93,7 +93,7 @@ namespace UTask.Services.Users
             }
 
 
-            logger.LogInformation($"User with id \"{ user.Id }\" was found. Username is { user.Username }");
+            logger.LogInformation($"User with id \"{ user.Id }\" was found. Username is \"{ user.Username }\"");
 
             return user;
         }
@@ -119,19 +119,20 @@ namespace UTask.Services.Users
             }
         }
 
-        public void Delete(Guid id)
+        public bool Delete(Guid id)
         {
-            logger.LogInformation($"Start getting User with Id = \"{ id }\" from Database");
             Guard.ArgumentNotNullOrEmpty(id, nameof(id), "Id can not be null or empty");
+            logger.LogInformation($"Start getting User with Id = \"{ id }\" from Database");
 
             var user = userRepository.GetById(id);
 
             if (user == null)
             {
                 logger.LogInformation($"Didn't find any User with Id \"{ id }\" in Database");
+                return false;
             }
 
-            logger.LogInformation($"Got user entity with Id { id }. Username is { user.Username }");
+            logger.LogInformation($"Got user entity with Id \"{ id }\". Username is \"{ user.Username }\"");
 
             try
             {
@@ -139,10 +140,12 @@ namespace UTask.Services.Users
                 userRepository.Delete(user);
                 unitOfWork.Commit();
                 logger.LogInformation($"User with Id = \"{ id }\" is deleted from database");
+                return true;
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, $"User with Id { id } caould not be deleted");
+                logger.LogError(exception, $"User with Id \"{ id }\" caould not be deleted");
+                return false;
             }
         }
     }
