@@ -10,7 +10,7 @@ namespace UTask.Services.Users
 {
     public class UserService : IUserService
     {
-        private readonly ILogger logger;
+        private readonly ILogger<IUserService> logger;
 
         private readonly IRepository<User> userRepository;
 
@@ -18,7 +18,7 @@ namespace UTask.Services.Users
 
         private readonly IUnitOfWork unitOfWork;
 
-        public UserService(ILogger logger, IRepository<User> userRepository, IRepository<Settings> settingsRepository, IUnitOfWork unitOfWork)
+        public UserService(ILogger<IUserService> logger, IRepository<User> userRepository, IRepository<Settings> settingsRepository, IUnitOfWork unitOfWork)
         {
             this.logger = logger;
             this.userRepository = userRepository;
