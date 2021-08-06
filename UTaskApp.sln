@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UTask.Models", "UTask.Model
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UTask.DataAccess", "UTask.DataAccess\UTask.DataAccess.csproj", "{30CFDB6C-73AB-44E8-B749-14733E75CD3A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UTask.TestConsole", "UTask.TestConsole\UTask.TestConsole.csproj", "{1EE45DA5-FAFE-4B3A-8A25-39D8AFB453ED}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UTask.Services", "UTask.Services\UTask.Services.csproj", "{D538DBD4-BF6B-45F6-B82F-0FB945FFE915}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UTask.IntegrationTests", "UTask.IntegrationTests\UTask.IntegrationTests.csproj", "{E6C0EC06-B55D-470A-8F18-949B8CD78920}"
@@ -27,10 +25,6 @@ Global
 		{30CFDB6C-73AB-44E8-B749-14733E75CD3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{30CFDB6C-73AB-44E8-B749-14733E75CD3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30CFDB6C-73AB-44E8-B749-14733E75CD3A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1EE45DA5-FAFE-4B3A-8A25-39D8AFB453ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1EE45DA5-FAFE-4B3A-8A25-39D8AFB453ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1EE45DA5-FAFE-4B3A-8A25-39D8AFB453ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1EE45DA5-FAFE-4B3A-8A25-39D8AFB453ED}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D538DBD4-BF6B-45F6-B82F-0FB945FFE915}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D538DBD4-BF6B-45F6-B82F-0FB945FFE915}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D538DBD4-BF6B-45F6-B82F-0FB945FFE915}.Release|Any CPU.ActiveCfg = Release|Any CPU
