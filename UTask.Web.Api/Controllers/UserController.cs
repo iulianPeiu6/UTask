@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using UTask.Models;
+using UTask.Services.Jwt;
 using UTask.Services.Users;
 
 namespace UTask.Web.Api.Controllers
@@ -15,10 +18,13 @@ namespace UTask.Web.Api.Controllers
 
         private readonly IUserService userService;
 
-        public UserController(ILogger<UserController> logger, IUserService userService)
+        private readonly IJwtAuthenticator jwtAuthenticator;
+
+        public UserController(ILogger<UserController> logger, IUserService userService, IJwtAuthenticator jwtAuthenticator)
         {
             this.logger = logger;
             this.userService = userService;
+            this.jwtAuthenticator = jwtAuthenticator;
         }
 
         [HttpGet("getall")]
@@ -33,14 +39,27 @@ namespace UTask.Web.Api.Controllers
             return Ok(users);
         }
 
-        [HttpGet("getbyusername/{username}")]
-        public IActionResult GetAll(string username)
+        [HttpGet("getbyname/{username}")]
+        public IActionResult GetByUsername(string username)
         {
             logger.LogInformation("Handling Get User By Username Request");
 
-            var user = userService.Get(username);
+            User user = null;
+            try
+            {
+                user = userService.Get(username);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest(new { Message = "Username can not be null" });
+            }
+            catch (Exception exception)
+            {
+                logger.LogError("Unexpected Error while processing the request", exception);
+                StatusCode(StatusCodes.Status500InternalServerError);
+            }
 
-            logger.LogInformation("Request processed. Returning response ...");
+            logger.LogInformation("Request processed successfully. Returning response ...");
 
             if (user == null)
             {
@@ -53,13 +72,26 @@ namespace UTask.Web.Api.Controllers
         }
 
         [HttpGet("getbyid/{id}")]
-        public IActionResult GetAll(Guid id)
+        public IActionResult GetById(Guid id)
         {
             logger.LogInformation("Handling Get User By Id Request");
 
-            var user = userService.Get(id);
+            User user = null;
+            try
+            {
+                user = userService.Get(id);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest(new { Message = "Id can not be null" });
+            }
+            catch (Exception exception)
+            {
+                logger.LogError("Unexpected Error while processing the request", exception);
+                StatusCode(StatusCodes.Status500InternalServerError);
+            }
 
-            logger.LogInformation("Request processed. Returning response ...");
+            logger.LogInformation("Request processed successfully. Returning response ...");
 
             if (user == null)
             {
@@ -71,18 +103,94 @@ namespace UTask.Web.Api.Controllers
             return Ok(user);
         }
 
-        [HttpPost("register")]
-        public User Register([FromBody] User user)
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] UserCredentials userCredentials)
         {
             logger.LogInformation("Handling Register User Request");
 
-            user = userService.Create(user);
+            User user = null;
+            try
+            {
+                user = userService.Get(userCredentials.Username);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest(new { Message = "Username can not be null" });
+            }
+            catch (Exception exception)
+            {
+                logger.LogError("Unexpected Error while processing the request", exception);
+                StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            logger.LogInformation("Request processed successfully. Returning response ...");
+
+            if (user == null)
+            {
+                return NotFound(new
+                {
+                    Message = $"User with Username { userCredentials.Username } could not be found"
+                });
+            }
+            var jwtToken = jwtAuthenticator.Authenticate(userCredentials);
 
             logger.LogInformation("Request processed. Returning response ...");
 
-            return user;
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                return Unauthorized();
+            }
+
+            return Ok(new
+            {
+                User = userCredentials,
+                JwtToken = jwtToken
+            });
         }
 
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public IActionResult Register([FromBody] User user)
+        {
+            logger.LogInformation("Handling Register User Request");
+
+            var userCredentials = new UserCredentials
+            {
+                Username = user.Username,
+                Password = user.Password
+            };
+
+            try
+            {
+                user = userService.Create(user);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError("Unexpected Error while processing the request", exception);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+            
+            var jwtToken = jwtAuthenticator.Authenticate(userCredentials);
+            logger.LogInformation("Request processed. Returning response ...");
+
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { Message = "Authentification failed" });
+            }
+            return Ok(new
+            {
+                User = user,
+                JwtToken = jwtToken
+            });
+        }
+
+        [Authorize]
         [HttpPatch("update")]
         public User Update([FromBody] User user)
         {
@@ -95,6 +203,7 @@ namespace UTask.Web.Api.Controllers
             return user;
         }
 
+        [Authorize]
         [HttpDelete("delete")]
         public IActionResult Delete(Guid id)
         {

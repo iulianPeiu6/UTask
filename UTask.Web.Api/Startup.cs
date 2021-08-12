@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using UTask.Services.Infrastructure;
+using UTask.Services.Jwt;
 
 namespace UTask.Web.Api
 {
@@ -22,6 +23,9 @@ namespace UTask.Web.Api
         {
             DependencyMapper.AddDbContext(services, Configuration.GetConnectionString("DefaultConnection"));
             DependencyMapper.MapDependencies(services);
+
+            JwtConfigurator.Configure(services, Configuration.GetValue<string>("JwtTokenKey"));
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {

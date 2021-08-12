@@ -1,4 +1,5 @@
-﻿using UTask.DataAccess.Context;
+﻿using Microsoft.EntityFrameworkCore;
+using UTask.DataAccess.Context;
 
 namespace UTask.DataAccess
 {
@@ -13,7 +14,14 @@ namespace UTask.DataAccess
 
         public void Commit()
         {
-            dbContext.SaveChanges();
+            try
+            {
+                dbContext.SaveChanges();
+            }
+            catch (DbUpdateException)
+            {
+                throw;
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UTask.DataAccess;
 using UTask.Models;
+using UTask.Services.Cryptography;
 using Vanguard;
 
 namespace UTask.Services.Users
@@ -12,18 +13,21 @@ namespace UTask.Services.Users
     {
         private readonly ILogger<IUserService> logger;
 
+        private readonly ICryptographyService cryptographyService;
+
         private readonly IRepository<User> userRepository;
 
         private readonly IRepository<Settings> settingsRepository;
 
         private readonly IUnitOfWork unitOfWork;
 
-        public UserService(ILogger<IUserService> logger, IRepository<User> userRepository, IRepository<Settings> settingsRepository, IUnitOfWork unitOfWork)
+        public UserService(ILogger<IUserService> logger, IRepository<User> userRepository, IRepository<Settings> settingsRepository, IUnitOfWork unitOfWork, ICryptographyService cryptographyService)
         {
             this.logger = logger;
             this.userRepository = userRepository;
             this.settingsRepository = settingsRepository;
             this.unitOfWork = unitOfWork;
+            this.cryptographyService = cryptographyService;
         }
 
         public User Create(User user)
@@ -31,6 +35,10 @@ namespace UTask.Services.Users
             Guard.ArgumentNotNull(user, nameof(user), "User can not be null");
             Guard.ArgumentNotNullOrEmpty(user.Username, nameof(user.Username), "Username can not be null or empty");
             Guard.ArgumentNotNullOrEmpty(user.Password, nameof(user.Password), "Password can not be null or empty");
+
+            logger.LogInformation("Start hashing password");
+            user.Password = cryptographyService.GetPasswordSHA3Hash(user.Password);
+            logger.LogInformation($"Password hashed: { user.Password }");
 
             User createdUser = null;
             try
@@ -70,7 +78,7 @@ namespace UTask.Services.Users
 
             if (user == null)
             {
-                logger.LogWarning($"User with UserName \"{ username }\" does not exists");
+                logger.LogInformation($"User with UserName \"{ username }\" does not exists");
                 return null;
             }
 
@@ -91,7 +99,6 @@ namespace UTask.Services.Users
                 logger.LogWarning($"User with Id \"{ id }\" does not exists");
                 return null;
             }
-
 
             logger.LogInformation($"User with id \"{ user.Id }\" was found. Username is \"{ user.Username }\"");
 
