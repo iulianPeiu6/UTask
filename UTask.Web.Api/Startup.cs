@@ -1,9 +1,11 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using UTask.Models;
 using UTask.Services.Infrastructure;
 using UTask.Services.Jwt;
 
@@ -25,6 +27,8 @@ namespace UTask.Web.Api
             DependencyMapper.MapDependencies(services);
 
             JwtConfigurator.Configure(services, Configuration.GetValue<string>("JwtTokenKey"));
+
+            services.AddAutoMapper(typeof(AutoMapperProfile));
 
             services.AddControllers();
             services.AddSwaggerGen(c =>

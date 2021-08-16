@@ -40,7 +40,7 @@ namespace UTask.Services.Users
             user.Password = cryptographyService.GetPasswordSHA3Hash(user.Password);
             logger.LogInformation($"Password hashed: { user.Password }");
 
-            User createdUser = null;
+            User createdUser;
             try
             {
                 logger.LogInformation("Start adding new user in database");
@@ -51,6 +51,7 @@ namespace UTask.Services.Users
             catch (Exception exception)
             {
                 logger.LogError(exception, "Could not add user in the database!");
+                return null;
             }
 
             return createdUser;

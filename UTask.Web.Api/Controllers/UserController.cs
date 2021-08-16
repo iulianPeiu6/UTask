@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UTask.Models;
 using UTask.Services.Jwt;
 using UTask.Services.Users;
@@ -20,11 +22,14 @@ namespace UTask.Web.Api.Controllers
 
         private readonly IJwtAuthenticator jwtAuthenticator;
 
-        public UserController(ILogger<UserController> logger, IUserService userService, IJwtAuthenticator jwtAuthenticator)
+        private readonly IMapper mapper; 
+
+        public UserController(ILogger<UserController> logger, IUserService userService, IJwtAuthenticator jwtAuthenticator, IMapper mapper)
         {
             this.logger = logger;
             this.userService = userService;
             this.jwtAuthenticator = jwtAuthenticator;
+            this.mapper = mapper;
         }
 
         [HttpGet("getall")]
@@ -34,9 +39,11 @@ namespace UTask.Web.Api.Controllers
 
             var users = userService.GetAll();
 
+            var usersDisplayInfo = users.Select(user => mapper.Map<UserDisplayInfo>(user));
+
             logger.LogInformation("Request processed. Returning response ...");
 
-            return Ok(users);
+            return Ok(usersDisplayInfo);
         }
 
         [HttpGet("getbyname/{username}")]
@@ -68,7 +75,9 @@ namespace UTask.Web.Api.Controllers
                     Message = $"User with Username { username } could not be found"
                 });
             }
-            return Ok(user);
+
+            var userDisplayInfo = mapper.Map<UserDisplayInfo>(user);
+            return Ok(userDisplayInfo);
         }
 
         [HttpGet("getbyid/{id}")]
@@ -100,7 +109,8 @@ namespace UTask.Web.Api.Controllers
                     Message = $"User with Id { id } could not be found"
                 });
             }
-            return Ok(user);
+            var userDisplayInfo = mapper.Map<UserDisplayInfo>(user);
+            return Ok(userDisplayInfo);
         }
 
         [AllowAnonymous]
@@ -161,6 +171,16 @@ namespace UTask.Web.Api.Controllers
                 Password = user.Password
             };
 
+            var usernameIsTaken = userService.Get(user.Username) != null;
+
+            if (usernameIsTaken)
+            {
+                return Conflict(new
+                {
+                    Message = "Usersername is taken!"
+                });
+            }
+
             try
             {
                 user = userService.Create(user);
@@ -176,13 +196,13 @@ namespace UTask.Web.Api.Controllers
             }
             
             var jwtToken = jwtAuthenticator.Authenticate(userCredentials);
-            logger.LogInformation("Request processed. Returning response ...");
 
             if (string.IsNullOrEmpty(jwtToken))
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, 
                     new { Message = "Authentification failed" });
             }
+            logger.LogInformation("Request processed successfully. Returning response ...");
             return Ok(new
             {
                 User = user,
@@ -192,15 +212,28 @@ namespace UTask.Web.Api.Controllers
 
         [Authorize]
         [HttpPatch("update")]
-        public User Update([FromBody] User user)
+        public IActionResult Update([FromBody] User user)
         {
             logger.LogInformation("Handling Update User Request");
 
-            user = userService.Update(user);
+            try
+            {
+                user = userService.Update(user);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError("Unexpected Error while processing the request", exception);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
 
             logger.LogInformation("Request processed. Returning response ...");
 
-            return user;
+            var userDisplayInfo = mapper.Map<UserDisplayInfo>(user);
+            return Ok(userDisplayInfo);
         }
 
         [Authorize]
@@ -209,7 +242,20 @@ namespace UTask.Web.Api.Controllers
         {
             logger.LogInformation("Handling Update User Request");
 
-            var isDeleted = userService.Delete(id);
+            bool isDeleted;
+            try
+            {
+                isDeleted = userService.Delete(id);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError("Unexpected Error while processing the request", exception);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
 
             logger.LogInformation("Request processed. Returning response ...");
 
