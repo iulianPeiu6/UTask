@@ -13,5 +13,9 @@ namespace UTask.Models
         public DateTime StartDate { get; set; }
 
         public DateTime DueDate { get; set; }
+
+        public Guid WorkspaceId { get; set; }
+
+        public Workspace Workspace { get; set; }
     }
 }

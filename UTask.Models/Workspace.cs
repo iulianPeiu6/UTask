@@ -11,6 +11,10 @@ namespace UTask.Models
 
         public string Visibility { get; set; }
 
+        public Guid UserId { get; set; }
+
+        public User User { get; set; }
+
         public ICollection<Task> Tasks { get; set; }
     }
 }

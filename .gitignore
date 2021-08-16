@@ -31,3 +31,4 @@ msbuild.wrn
 .vs/
 launchSettings.json
 appsettings.json
+appsettings.Development.json
